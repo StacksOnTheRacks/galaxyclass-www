@@ -1,0 +1,6 @@
+{
+  "app": "npx tsx bin/galaxyclass.ts",
+  "context": {
+    "@aws-cdk/core:checkSecretUsage": true
+  }
+}
