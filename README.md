@@ -2,7 +2,7 @@
 
 Public marketing site for **Galaxy Class Gaming** — a design-focused gaming studio.
 
-**First featured product:** [Riffle](https://github.com/StacksOnTheRacks/riffle-poker) — standalone no-limit Texas Hold'em (play chips) with embed-mode for hosts (RiffSync first).
+**First featured game:** [Riffle](https://github.com/StacksOnTheRacks/riffle-poker) — no-limit Texas Hold'em with play chips. The home's **Play Riffle** links to same-origin `/riffle`, which CloudFront serves from Riffle's own origin (this app never routes or embeds it).
 
 ## Develop
 
@@ -12,6 +12,14 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Check
+
+```bash
+npm test       # Vitest + React Testing Library
+npm run lint
+npm run build
+```
 
 ## Build
 

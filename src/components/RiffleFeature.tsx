@@ -1,168 +1,153 @@
-"use client";
-
-import { motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
+import { PlayingCard } from "./PlayingCard";
+import { ButtonLink, Eyebrow, Frame, PLAY_RIFFLE_HREF, Tag } from "./primitives";
 
 const features = [
-  {
-    label: "Real rules",
-    detail: "Full no-limit Texas Hold'em — streets, side pots, showdown. Not a toy.",
-  },
-  {
-    label: "Play chips",
-    detail: "Zero real money. Sign in or play anonymously. No KYC, no cashier.",
-  },
-  {
-    label: "Hidden hole cards",
-    detail: "Seat-scoped secrets. The board is public; your hand stays yours.",
-  },
-  {
-    label: "Embed anywhere",
-    detail: "Load Riffle in an iframe inside your room. You keep chat and media.",
-  },
+  "Play chips only — nothing to buy",
+  "Runs in your browser — nothing to install",
+  "Pull up a seat without an account",
 ];
 
-export function RiffleFeature() {
-  const reduceMotion = useReducedMotion();
+const board = [
+  { rank: "A", suit: "spade" },
+  { rank: "K", suit: "heart" },
+  { rank: "9", suit: "club" },
+  { rank: "9", suit: "diamond" },
+  { rank: "4", suit: "spade" },
+] as const;
 
+const seats = [
+  { name: "Maya", className: "left-[278px] top-0", active: true },
+  { name: "Jules", className: "left-[548px] top-[110px]" },
+  { name: "Dev", className: "left-[548px] top-[290px]" },
+  { name: "Sam", className: "left-[278px] top-[356px]" },
+  { name: "Ana", className: "left-0 top-[290px]" },
+  { name: "Theo", className: "left-0 top-[110px]" },
+];
+
+function TableIllustration() {
   return (
-    <section
-      id="riffle"
-      className="relative px-6 py-32"
-      aria-labelledby="riffle-heading"
+    <div
+      className="relative hidden h-[420px] w-[600px] shrink-0 xl:block"
+      aria-hidden="true"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-riffle/30 to-transparent" />
-
-      <div className="mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-2">
-        <motion.div
-          className="relative order-2 lg:order-1"
-          initial={reduceMotion ? false : { opacity: 0, x: -24 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
+      <Image
+        src="/figma/table-rail.svg"
+        alt=""
+        width={540}
+        height={300}
+        unoptimized
+        className="absolute left-[30px] top-[60px]"
+      />
+      <Image
+        src="/figma/table-felt.svg"
+        alt=""
+        width={492}
+        height={256}
+        unoptimized
+        className="absolute left-[54px] top-[82px]"
+      />
+      <div className="absolute left-[162px] top-[150px] flex gap-2">
+        {board.map((card) => (
+          <PlayingCard
+            key={`${card.rank}${card.suit}`}
+            rank={card.rank}
+            suit={card.suit}
+            size="sm"
+          />
+        ))}
+      </div>
+      <div className="absolute left-[240px] top-[240px] flex items-center gap-2 rounded-full bg-void px-[14px] py-[6px] text-label font-semibold">
+        <Image src="/figma/pot-chip.svg" alt="" width={12} height={12} unoptimized />
+        Pot 1,240
+      </div>
+      {seats.map((seat) => (
+        <div
+          key={seat.name}
+          className={`absolute flex flex-col items-center gap-[6px] ${seat.className}`}
         >
-          <div className="glass relative overflow-hidden rounded-3xl p-1">
-            <div className="relative rounded-[22px] bg-gradient-to-br from-nebula-900 to-void p-8">
-              <div
-                className="absolute inset-0 opacity-30"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 30% 20%, rgba(62,232,165,0.15), transparent 50%)",
-                }}
-                aria-hidden="true"
-              />
+          <span
+            className={`flex size-11 items-center justify-center rounded-full bg-elevated font-display text-[16px] font-bold ${
+              seat.active ? "border-2 border-riffle" : "border border-line"
+            }`}
+          >
+            {seat.name[0]}
+          </span>
+          <span
+            className={`text-label font-semibold ${
+              seat.active ? "text-riffle" : "text-fg-muted"
+            }`}
+          >
+            {seat.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-              <div className="relative">
-                <div className="mb-6 flex items-center justify-between">
-                  <span className="font-display text-xs uppercase tracking-[0.25em] text-riffle">
-                    Featured product
+export function RiffleFeature() {
+  return (
+    <section id="games" aria-labelledby="games-heading" className="pb-20 pt-10">
+      <Frame className="flex flex-col gap-12">
+        <div className="flex max-w-[760px] flex-col gap-4">
+          <Eyebrow>Our games</Eyebrow>
+          <h2
+            id="games-heading"
+            className="font-display text-[40px] font-bold leading-[44px] tracking-[-0.8px] sm:text-display-l"
+          >
+            First to the table: Riffle.
+          </h2>
+        </div>
+
+        <article
+          id="riffle"
+          aria-labelledby="riffle-heading"
+          className="flex flex-col items-center justify-between gap-12 rounded-xl border border-riffle bg-deep px-6 py-10 shadow-[0px_0px_80px_0px_rgba(61,232,166,0.12)] sm:px-12 sm:py-16 xl:flex-row xl:pl-16 xl:pr-12"
+        >
+          <div className="flex w-full flex-col items-start gap-6 xl:w-[520px] xl:shrink-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <Tag status="live" />
+              <Eyebrow tone="muted">Featured game · 01</Eyebrow>
+            </div>
+
+            <h3
+              id="riffle-heading"
+              className="font-display text-[56px] font-bold leading-[60px] tracking-[-1.12px] sm:text-display-xl"
+            >
+              Riffle
+            </h3>
+
+            <p className="text-body-l text-fg-muted">
+              Real no-limit Texas Hold&rsquo;em with the people you actually
+              want to play with. Send a link, take a seat, deal.
+            </p>
+
+            <ul className="flex flex-col gap-3">
+              {features.map((feature) => (
+                <li key={feature} className="flex items-center gap-3 text-body-m">
+                  <span
+                    className="flex size-[22px] shrink-0 items-center justify-center rounded-full bg-riffle text-[12px] font-bold text-void"
+                    aria-hidden="true"
+                  >
+                    ✓
                   </span>
-                  <span className="rounded-full border border-riffle/30 bg-riffle/10 px-3 py-1 text-xs text-riffle">
-                    NLHE · Play chips
-                  </span>
-                </div>
+                  {feature}
+                </li>
+              ))}
+            </ul>
 
-                <h3 className="font-display text-4xl font-bold">Riffle</h3>
-                <p className="mt-2 text-white/50">
-                  No-limit Hold&apos;em — standalone or embedded
-                </p>
-
-                <div
-                  className="mt-8 flex justify-center gap-3"
-                  aria-hidden="true"
-                >
-                  {["♠", "♥", "♦", "♣"].map((suit, i) => (
-                    <div
-                      key={suit}
-                      className="flex h-16 w-12 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-xl"
-                      style={{ transform: `rotate(${(i - 1.5) * 8}deg)` }}
-                    >
-                      {suit}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-8 grid grid-cols-3 gap-3 text-center text-xs">
-                  <div className="rounded-lg border border-white/10 bg-white/5 py-3">
-                    <div className="font-display text-lg font-bold text-white">
-                      2–9
-                    </div>
-                    <div className="text-white/40">Seats</div>
-                  </div>
-                  <div className="rounded-lg border border-white/10 bg-white/5 py-3">
-                    <div className="font-display text-lg font-bold text-white">
-                      WS
-                    </div>
-                    <div className="text-white/40">Live hands</div>
-                  </div>
-                  <div className="rounded-lg border border-white/10 bg-white/5 py-3">
-                    <div className="font-display text-lg font-bold text-white">
-                      0$
-                    </div>
-                    <div className="text-white/40">Real money</div>
-                  </div>
-                </div>
-              </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <ButtonLink href={PLAY_RIFFLE_HREF} arrow>
+                Play Riffle
+              </ButtonLink>
+              <p className="text-body-m text-fg-muted">galaxyclass.app/riffle</p>
             </div>
           </div>
-        </motion.div>
 
-        <motion.div
-          className="order-1 lg:order-2"
-          initial={reduceMotion ? false : { opacity: 0, x: 24 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-        >
-          <p className="font-display text-xs font-semibold uppercase tracking-[0.35em] text-riffle">
-            First product
-          </p>
-          <h2
-            id="riffle-heading"
-            className="mt-4 font-display text-4xl font-bold tracking-tight sm:text-5xl"
-          >
-            Riffle is the table.
-          </h2>
-          <p className="mt-6 text-lg leading-relaxed text-white/60">
-            Riffle owns the rules, the match state, and the felt. Play standalone
-            with an account or anonymously — or drop the same surface into a host
-            room via embed-mode. Chat, presence, and media stay on the host.
-          </p>
-
-          <ul className="mt-10 space-y-5">
-            {features.map((f) => (
-              <li key={f.label} className="flex gap-4">
-                <span
-                  className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-riffle/40 bg-riffle/10 text-xs text-riffle"
-                  aria-hidden="true"
-                >
-                  ✓
-                </span>
-                <div>
-                  <span className="font-medium text-white">{f.label}</span>
-                  <span className="text-white/40"> — </span>
-                  <span className="text-white/55">{f.detail}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-10 flex flex-wrap gap-4">
-            <a
-              href="https://github.com/StacksOnTheRacks/riffle-poker"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-riffle px-6 py-3 text-sm font-semibold text-void transition hover:bg-riffle/90"
-            >
-              Riffle on GitHub
-              <span className="sr-only"> (opens in new tab)</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <p className="self-center text-xs text-white/40">
-              Play surface ships from the Riffle repo — not embedded here.
-            </p>
-          </div>
-        </motion.div>
-      </div>
+          <TableIllustration />
+        </article>
+      </Frame>
     </section>
   );
 }

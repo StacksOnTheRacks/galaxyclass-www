@@ -10,53 +10,42 @@ const suitSymbol: Record<Suit, string> = {
 type PlayingCardProps = {
   rank: string;
   suit: Suit;
+  size?: "lg" | "sm";
   className?: string;
-  faceDown?: boolean;
 };
 
 export function PlayingCard({
   rank,
   suit,
+  size = "lg",
   className = "",
-  faceDown = false,
 }: PlayingCardProps) {
-  const red = suit === "heart" || suit === "diamond";
+  const ink =
+    suit === "heart" || suit === "diamond" ? "text-suit-red" : "text-suit-black";
 
-  if (faceDown) {
+  if (size === "sm") {
     return (
       <div
-        className={`relative flex h-28 w-20 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-nebula-800 to-nebula-950 shadow-2xl ${className}`}
+        className={`h-[72px] w-[52px] shrink-0 rounded-[6px] bg-fg pl-[7px] pt-[6px] font-display text-[14px] font-bold leading-[15px] ${ink} ${className}`}
         aria-hidden="true"
       >
-        <div className="absolute inset-2 rounded-lg border border-gold/20 bg-[repeating-linear-gradient(45deg,rgba(232,197,71,0.08)_0px,rgba(232,197,71,0.08)_2px,transparent_2px,transparent_8px)]" />
-        <span className="font-display text-xs uppercase tracking-[0.3em] text-gold/40">
-          GCG
-        </span>
+        {rank}
+        <span className="block">{suitSymbol[suit]}</span>
       </div>
     );
   }
 
   return (
     <div
-      className={`relative flex h-28 w-20 shrink-0 flex-col justify-between rounded-xl border border-white/30 bg-gradient-to-br from-white to-zinc-200 p-2 shadow-2xl ${className}`}
+      className={`relative h-[156px] w-[112px] shrink-0 rounded-md bg-fg font-display font-bold shadow-[0px_24px_48px_0px_rgba(0,0,0,0.55)] ${ink} ${className}`}
       aria-hidden="true"
     >
-      <span
-        className={`font-display text-sm font-bold leading-none ${red ? "text-red-600" : "text-zinc-900"}`}
-      >
+      <span className="absolute left-3 top-[10px] text-[20px] leading-[22px]">
         {rank}
-        <span className="block text-xs">{suitSymbol[suit]}</span>
+        <span className="block">{suitSymbol[suit]}</span>
       </span>
-      <span
-        className={`self-center text-2xl ${red ? "text-red-600" : "text-zinc-900"}`}
-      >
+      <span className="absolute left-1/2 top-[50px] -translate-x-1/2 text-[48px]">
         {suitSymbol[suit]}
-      </span>
-      <span
-        className={`self-end rotate-180 font-display text-sm font-bold leading-none ${red ? "text-red-600" : "text-zinc-900"}`}
-      >
-        {rank}
-        <span className="block text-xs">{suitSymbol[suit]}</span>
       </span>
     </div>
   );

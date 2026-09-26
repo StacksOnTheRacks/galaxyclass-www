@@ -22,28 +22,14 @@
   }
 
   body {
-    @apply bg-void font-body text-white antialiased;
+    @apply bg-void font-body text-fg antialiased;
   }
 
   ::selection {
-    @apply bg-gold/30 text-white;
+    @apply bg-gold/30 text-fg;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-4 outline-stellar;
-  }
-}
-
-@layer utilities {
-  .text-gradient-gold {
-    @apply bg-gradient-to-r from-gold via-white to-gold bg-clip-text text-transparent;
-  }
-
-  .glass {
-    @apply border border-white/10 bg-white/[0.04] backdrop-blur-xl;
-  }
-
-  .noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    @apply outline outline-2 outline-offset-4 outline-stellar;
   }
 }

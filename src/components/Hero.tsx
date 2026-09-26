@@ -1,119 +1,166 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { PlayingCard } from "./PlayingCard";
+import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
+import { ButtonLink, Eyebrow, Frame, PLAY_RIFFLE_HREF, Tag } from "./primitives";
 
-export function Hero() {
-  const reduceMotion = useReducedMotion();
+const trust = ["Play chips only", "Nothing to install", "Friends first"];
+
+const stats = [
+  { label: "Stakes", value: "Play chips" },
+  { label: "Seats", value: "Open" },
+  { label: "Install", value: "None" },
+];
+
+function HeroCards() {
+  const reduceMotion = usePrefersReducedMotion();
+
+  if (reduceMotion) {
+    return (
+      <>
+        <PlayingCard rank="A" suit="spade" className="!absolute left-[316px] top-[30px]" />
+        <PlayingCard rank="K" suit="heart" className="!absolute left-[440px] top-[30px]" />
+      </>
+    );
+  }
 
   return (
-    <section
-      className="relative flex min-h-screen flex-col justify-center px-6 pb-24 pt-32"
-      aria-labelledby="hero-heading"
-    >
-      <div className="mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-2">
-        <div>
-          <motion.p
-            className="mb-4 font-display text-xs font-semibold uppercase tracking-[0.35em] text-stellar"
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            Galaxy Class Gaming
-          </motion.p>
+    <>
+      <motion.div
+        data-motion="float"
+        className="absolute left-[343px] top-[9px]"
+        style={{ rotate: -10 }}
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <PlayingCard rank="A" suit="spade" />
+      </motion.div>
+      <motion.div
+        data-motion="float"
+        className="absolute left-[409px] top-[67px]"
+        style={{ rotate: 8 }}
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+      >
+        <PlayingCard rank="K" suit="heart" />
+      </motion.div>
+    </>
+  );
+}
 
-          <motion.h1
+function NowPlayingCard() {
+  return (
+    <div className="relative flex w-full flex-col gap-6 rounded-xl border border-line bg-surface p-8 shadow-[0px_32px_80px_0px_rgba(0,0,0,0.5)] backdrop-blur-[12px] xl:absolute xl:left-[60px] xl:top-[170px] xl:w-[420px]">
+      <div className="flex items-center justify-between">
+        <Eyebrow tone="muted">Now playing</Eyebrow>
+        <Tag status="live" />
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="font-display text-display-l font-bold">Riffle</p>
+        <p className="text-body-m text-fg-muted">
+          No-limit Hold&rsquo;em with your people.
+        </p>
+      </div>
+      <div className="h-px w-full bg-line" />
+      <dl className="flex justify-between gap-4">
+        {stats.map((stat) => (
+          <div key={stat.label} className="flex flex-col gap-[2px]">
+            <dt className="text-eyebrow font-semibold uppercase text-fg-muted">
+              {stat.label}
+            </dt>
+            <dd className="font-display text-heading-s font-semibold">
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+export function Hero() {
+  return (
+    <section aria-labelledby="hero-heading" className="py-16 lg:py-24">
+      <Frame className="flex flex-col items-center justify-between gap-16 xl:flex-row">
+        <div className="flex w-full max-w-[640px] flex-col items-start gap-8 self-start xl:self-auto">
+          <Eyebrow>Galaxy Class Gaming · Independent studio</Eyebrow>
+
+          <h1
             id="hero-heading"
-            className="font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl"
-            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
+            className="font-display text-[48px] font-bold leading-[52px] tracking-[-1px] sm:text-display-xl"
           >
-            Games worth
-            <span className="block text-gradient-gold">sitting down for.</span>
-          </motion.h1>
+            Games worth <span className="text-gold">sitting down for.</span>
+          </h1>
 
-          <motion.p
-            className="mt-6 max-w-lg text-lg leading-relaxed text-white/65"
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.5 }}
-          >
-            We build cinematic, craft-first social games — the kind you open with
-            friends, not the kind that opens your wallet. Our first table is{" "}
-            <strong className="font-medium text-riffle">Riffle</strong>: real
-            no-limit Hold&apos;em, play chips only.
-          </motion.p>
+          <p className="text-body-l text-fg-muted">
+            We make social games that are functional first and fun always —
+            quick to join, easy to share, and never a wallet in disguise. Our
+            first table is Riffle.
+          </p>
 
-          <motion.div
-            className="mt-10 flex flex-wrap gap-4"
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.5 }}
-          >
-            <a
-              href="#riffle"
-              className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-void transition hover:bg-gold/90"
-            >
-              Explore Riffle
-              <span aria-hidden="true">→</span>
-            </a>
-            <a
-              href="https://github.com/StacksOnTheRacks/riffle-poker"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
-            >
-              View on GitHub
-              <span className="sr-only"> (opens in new tab)</span>
-            </a>
-          </motion.div>
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href={PLAY_RIFFLE_HREF} arrow>
+              Play Riffle
+            </ButtonLink>
+            <ButtonLink href="#studio" variant="secondary">
+              Meet the studio
+            </ButtonLink>
+          </div>
+
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            {trust.map((item) => (
+              <li
+                key={item}
+                className="flex items-center gap-2 text-label font-semibold text-fg-muted"
+              >
+                <Image
+                  src="/figma/trust-dot.svg"
+                  alt=""
+                  width={6}
+                  height={6}
+                  unoptimized
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <motion.div
-          className="relative mx-auto flex h-80 w-full max-w-md items-center justify-center lg:h-96"
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.7 }}
-          aria-hidden="true"
-        >
-          <PlayingCard
-            rank="A"
-            suit="spade"
-            className="absolute -rotate-12 -translate-x-16 translate-y-4 animate-float"
-          />
-          <PlayingCard
-            rank="K"
-            suit="heart"
-            className="absolute z-10 rotate-3 shadow-[0_0_60px_rgba(232,197,71,0.15)]"
-          />
-          <PlayingCard
-            rank="?"
-            suit="club"
-            faceDown
-            className="absolute rotate-12 translate-x-16 translate-y-6"
-          />
+        <div className="relative w-full max-w-[560px] self-start xl:size-[560px] xl:shrink-0 xl:self-auto">
+          <div className="hidden xl:block" aria-hidden="true">
+            <Image
+              src="/figma/orbit-outer.svg"
+              alt=""
+              width={560}
+              height={560}
+              unoptimized
+              className="absolute left-0 top-0"
+            />
+            <Image
+              src="/figma/orbit-inner.svg"
+              alt=""
+              width={400}
+              height={400}
+              unoptimized
+              className="absolute left-20 top-20"
+            />
+            <HeroCards />
+          </div>
 
-          <div className="absolute -bottom-4 left-1/2 w-48 -translate-x-1/2 rounded-full bg-gold/20 blur-2xl" />
-        </motion.div>
-      </div>
+          <NowPlayingCard />
 
-      <motion.div
-        className="mx-auto mt-20 flex max-w-6xl flex-wrap gap-8 border-t border-white/10 pt-8 text-sm text-white/45"
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-      >
-        <span>Play chips only — no real money</span>
-        <span className="hidden sm:inline" aria-hidden="true">
-          ·
-        </span>
-        <span>Standalone app or embed in your room</span>
-        <span className="hidden sm:inline" aria-hidden="true">
-          ·
-        </span>
-        <span>Design-led from the felt up</span>
-      </motion.div>
+          <Image
+            src="/figma/planet.svg"
+            alt=""
+            width={144}
+            height={144}
+            unoptimized
+            className="absolute left-[-20px] top-[400px] hidden max-w-none xl:block"
+          />
+        </div>
+      </Frame>
     </section>
   );
 }

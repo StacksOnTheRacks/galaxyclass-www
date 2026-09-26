@@ -15,13 +15,13 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Galaxy Class Gaming — Craft-first games for the next table",
+  title: "Galaxy Class Gaming — Games worth sitting down for",
   description:
-    "Galaxy Class Gaming builds design-led social games. Meet Riffle — no-limit Texas Hold'em with play chips, standalone or embedded in your room.",
+    "Galaxy Class Gaming is an independent studio making social games that are functional first and fun always. Our first table is Riffle — no-limit Texas Hold'em with play chips.",
   openGraph: {
     title: "Galaxy Class Gaming",
     description:
-      "Design-led gaming studio. Riffle: real Hold'em, play chips, embed anywhere.",
+      "Independent game studio. Riffle: real no-limit Hold'em with your people, play chips only.",
     type: "website",
   },
 };
