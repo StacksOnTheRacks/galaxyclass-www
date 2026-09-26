@@ -110,12 +110,12 @@ describe("home boundaries", () => {
     expect(nextConfig).not.toMatch(/rewrites|redirects/);
   });
 
-  it("ships no inline HTML injection, scripts, or auth SDKs", () => {
+  it("ships no inline HTML injection, scripts, or Hosted UI", () => {
     for (const file of sourceFiles(path.join(root, "src"))) {
       const source = readFileSync(file, "utf8");
       expect(source, file).not.toMatch(/dangerouslySetInnerHTML/);
       expect(source, file).not.toMatch(/<script|<iframe/i);
-      expect(source, file).not.toMatch(/aws-amplify|amazon-cognito/);
+      expect(source, file).not.toMatch(/hostedUI|oauth2\/authorize/);
     }
   });
 });
