@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { canonicalRedirectFunctionCode } from '../lib/cloudfront-canonical-redirect.js';
-import { GalaxyClassSiteStack, RIFFLE_CSP, STUDIO_CSP } from '../lib/galaxy-class-site-stack.js';
+import { GalaxyClassSiteStack, RIFFLE_CSP, RIFFLE_LOOKUP_DUMMY, STUDIO_CSP } from '../lib/galaxy-class-site-stack.js';
 import { TEST_ACCOUNT, TEST_REGION } from './support.js';
 
 const RIFFLE_BUCKET = 'galaxyclass-riffle-play-origin-test';
@@ -228,6 +228,22 @@ test('outputs are exactly the public site identifiers', () => {
     'SiteUrl',
   ]);
   assert.equal(outputs.SiteUrl.Value, 'https://galaxyclass.app');
+});
+
+test('missing riffle parameter does not block studio synthesis', () => {
+  const app = new App();
+  const stack = new GalaxyClassSiteStack(app, 'GalaxyClassSite-uncached', {
+    env: { account: '222222222222', region: TEST_REGION },
+    studioAssetPath: path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures/site-out'),
+  });
+  const template = Template.fromStack(stack);
+  const distribution = distributionConfig(template);
+  assert.equal(distribution.CacheBehaviors, undefined);
+  assert.equal((distribution.Origins as unknown[]).length, 1);
+  const rendered = JSON.stringify(template.toJSON());
+  assert.equal(rendered.includes('dummy-value-for-'), false);
+  assert.equal(rendered.includes(RIFFLE_LOOKUP_DUMMY), false);
+  template.resourceCountIs('AWS::CloudFront::Distribution', 1);
 });
 
 test('template resources do not embed secrets or an access-log bucket', () => {

@@ -15,7 +15,7 @@ import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { BlockPublicAccess, Bucket, CfnBucketPolicy } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, CfnBucketPolicy, type IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
@@ -28,6 +28,12 @@ export const APEX_HOST = 'galaxyclass.app';
 export const WWW_HOST = 'www.galaxyclass.app';
 export const SITE_URL = 'https://galaxyclass.app';
 export const RIFFLE_BUCKET_PARAMETER = '/galaxyclass/riffle/play-origin-bucket';
+
+/**
+ * Stand-in for a missing SSM value. CDK's default dummy embeds the parameter path,
+ * and Bucket.fromBucketName rejects those slashes during the first synthesis pass.
+ */
+export const RIFFLE_LOOKUP_DUMMY = 'dummy-riffle-play-origin';
 
 export const STUDIO_CSP =
   "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com; frame-src 'none'; upgrade-insecure-requests";
@@ -65,12 +71,16 @@ export class GalaxyClassSiteStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
-    const riffleBucketName = StringParameter.valueFromLookup(this, RIFFLE_BUCKET_PARAMETER);
-    const riffleBucket = Bucket.fromBucketName(this, 'RifflePlayOrigin', riffleBucketName);
+    const riffleBucketName = resolveRiffleBucketName(this);
+    const riffleBucket = riffleBucketName
+      ? Bucket.fromBucketName(this, 'RifflePlayOrigin', riffleBucketName)
+      : undefined;
 
     const originAccessControl = new S3OriginAccessControl(this, 'OriginAccessControl');
     const studioOrigin = S3BucketOrigin.withOriginAccessControl(studioBucket, { originAccessControl });
-    const riffleOrigin = S3BucketOrigin.withOriginAccessControl(riffleBucket, { originAccessControl });
+    const riffleOrigin = riffleBucket
+      ? S3BucketOrigin.withOriginAccessControl(riffleBucket, { originAccessControl })
+      : undefined;
 
     const viewerRequest = new Function(this, 'CanonicalRedirect', {
       code: FunctionCode.fromInline(canonicalRedirectFunctionCode),
@@ -89,12 +99,14 @@ export class GalaxyClassSiteStack extends Stack {
         contentSecurityPolicy: { contentSecurityPolicy: STUDIO_CSP, override: true },
       },
     });
-    const riffleHeaders = new ResponseHeadersPolicy(this, 'RiffleHeaders', {
-      securityHeadersBehavior: {
-        strictTransportSecurity: hsts,
-        contentSecurityPolicy: { contentSecurityPolicy: RIFFLE_CSP, override: true },
-      },
-    });
+    const riffleHeaders = riffleOrigin
+      ? new ResponseHeadersPolicy(this, 'RiffleHeaders', {
+          securityHeadersBehavior: {
+            strictTransportSecurity: hsts,
+            contentSecurityPolicy: { contentSecurityPolicy: RIFFLE_CSP, override: true },
+          },
+        })
+      : undefined;
 
     const behavior = {
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -118,18 +130,21 @@ export class GalaxyClassSiteStack extends Stack {
         responseHeadersPolicy: studioHeaders,
         ...behavior,
       },
-      additionalBehaviors: {
-        '/riffle': {
-          origin: riffleOrigin,
-          responseHeadersPolicy: riffleHeaders,
-          ...behavior,
-        },
-        '/riffle/*': {
-          origin: riffleOrigin,
-          responseHeadersPolicy: riffleHeaders,
-          ...behavior,
-        },
-      },
+      additionalBehaviors:
+        riffleOrigin && riffleHeaders
+          ? {
+              '/riffle': {
+                origin: riffleOrigin,
+                responseHeadersPolicy: riffleHeaders,
+                ...behavior,
+              },
+              '/riffle/*': {
+                origin: riffleOrigin,
+                responseHeadersPolicy: riffleHeaders,
+                ...behavior,
+              },
+            }
+          : undefined,
       errorResponses: [
         {
           httpStatus: 403,
@@ -146,23 +161,9 @@ export class GalaxyClassSiteStack extends Stack {
       ],
     });
 
-    new CfnBucketPolicy(this, 'RiffleOriginReadPolicy', {
-      bucket: riffleBucket.bucketName,
-      policyDocument: new PolicyDocument({
-        statements: [
-          new PolicyStatement({
-            principals: [new ServicePrincipal('cloudfront.amazonaws.com')],
-            actions: ['s3:GetObject'],
-            resources: [riffleBucket.arnForObjects('*')],
-            conditions: {
-              StringEquals: {
-                'AWS:SourceArn': `arn:${Aws.PARTITION}:cloudfront::${Aws.ACCOUNT_ID}:distribution/${distribution.distributionId}`,
-              },
-            },
-          }),
-        ],
-      }),
-    });
+    if (riffleBucket) {
+      grantRiffleOriginRead(this, riffleBucket, distribution.distributionId);
+    }
 
     new ARecord(this, 'ApexAlias', {
       zone,
@@ -187,4 +188,32 @@ export class GalaxyClassSiteStack extends Stack {
     new CfnOutput(this, 'SiteUrl', { value: SITE_URL });
     new CfnOutput(this, 'CertificateArn', { value: certificate.certificateArn });
   }
+}
+
+function resolveRiffleBucketName(scope: Stack): string | undefined {
+  // defaultValue is the first-pass dummy and tells CDK not to fail synthesis when the
+  // parameter does not exist yet. A real lookup replaces it on the next pass.
+  const name = StringParameter.valueFromLookup(scope, RIFFLE_BUCKET_PARAMETER, RIFFLE_LOOKUP_DUMMY);
+  if (name === RIFFLE_LOOKUP_DUMMY) return undefined;
+  return name;
+}
+
+function grantRiffleOriginRead(scope: Stack, bucket: IBucket, distributionId: string): void {
+  new CfnBucketPolicy(scope, 'RiffleOriginReadPolicy', {
+    bucket: bucket.bucketName,
+    policyDocument: new PolicyDocument({
+      statements: [
+        new PolicyStatement({
+          principals: [new ServicePrincipal('cloudfront.amazonaws.com')],
+          actions: ['s3:GetObject'],
+          resources: [bucket.arnForObjects('*')],
+          conditions: {
+            StringEquals: {
+              'AWS:SourceArn': `arn:${Aws.PARTITION}:cloudfront::${Aws.ACCOUNT_ID}:distribution/${distributionId}`,
+            },
+          },
+        }),
+      ],
+    }),
+  });
 }

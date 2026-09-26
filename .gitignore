@@ -31,3 +31,4 @@ next-env.d.ts
 # cdk
 infra/cdk/node_modules/
 infra/cdk/cdk.out/
+infra/cdk/cdk.context.json
