@@ -18,6 +18,7 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { BlockPublicAccess, Bucket, CfnBucketPolicy, type IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
+import { CfnLayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
 import { canonicalRedirectFunctionCode } from './cloudfront-canonical-redirect.js';
@@ -34,6 +35,9 @@ export const RIFFLE_BUCKET_PARAMETER = '/galaxyclass/riffle/play-origin-bucket';
  * and Bucket.fromBucketName rejects those slashes during the first synthesis pass.
  */
 export const RIFFLE_LOOKUP_DUMMY = 'dummy-riffle-play-origin';
+
+/** Matches cdk-galcls-cfn-exec-role lambda permissions on layer:GalaxyClass*. */
+export const STUDIO_DEPLOY_LAYER_NAME = 'GalaxyClassSiteStudioAssetsCli';
 
 export const STUDIO_CSP =
   "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com; frame-src 'none'; upgrade-insecure-requests";
@@ -175,18 +179,27 @@ export class GalaxyClassSiteStack extends Stack {
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
     });
 
-    new BucketDeployment(this, 'StudioAssets', {
+    const studioAssets = new BucketDeployment(this, 'StudioAssets', {
       sources: [Source.asset(props.studioAssetPath)],
       destinationBucket: studioBucket,
       distribution,
       distributionPaths: ['/*'],
     });
+    nameStudioDeployLayer(studioAssets);
 
     new CfnOutput(this, 'BucketName', { value: studioBucket.bucketName });
     new CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
     new CfnOutput(this, 'DistributionDomainName', { value: distribution.distributionDomainName });
     new CfnOutput(this, 'SiteUrl', { value: SITE_URL });
     new CfnOutput(this, 'CertificateArn', { value: certificate.certificateArn });
+  }
+}
+
+function nameStudioDeployLayer(deployment: Construct): void {
+  const layer = deployment.node.findAll().find((child) => child.node.id === 'AwsCliLayer');
+  const cfnLayer = layer?.node.defaultChild;
+  if (cfnLayer instanceof CfnLayerVersion) {
+    cfnLayer.layerName = STUDIO_DEPLOY_LAYER_NAME;
   }
 }
 

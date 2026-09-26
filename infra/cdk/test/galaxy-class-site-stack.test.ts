@@ -5,7 +5,13 @@ import { fileURLToPath } from 'node:url';
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { canonicalRedirectFunctionCode } from '../lib/cloudfront-canonical-redirect.js';
-import { GalaxyClassSiteStack, RIFFLE_CSP, RIFFLE_LOOKUP_DUMMY, STUDIO_CSP } from '../lib/galaxy-class-site-stack.js';
+import {
+  GalaxyClassSiteStack,
+  RIFFLE_CSP,
+  RIFFLE_LOOKUP_DUMMY,
+  STUDIO_CSP,
+  STUDIO_DEPLOY_LAYER_NAME,
+} from '../lib/galaxy-class-site-stack.js';
 import { TEST_ACCOUNT, TEST_REGION } from './support.js';
 
 const RIFFLE_BUCKET = 'galaxyclass-riffle-play-origin-test';
@@ -228,6 +234,13 @@ test('outputs are exactly the public site identifiers', () => {
     'SiteUrl',
   ]);
   assert.equal(outputs.SiteUrl.Value, 'https://galaxyclass.app');
+});
+
+test('studio asset deploy layer name matches the cfn exec role prefix', () => {
+  const { template } = synthSite();
+  const layers = Object.values(template.findResources('AWS::Lambda::LayerVersion')) as Resource[];
+  assert.equal(layers.length, 1);
+  assert.equal(layers[0].Properties?.LayerName, STUDIO_DEPLOY_LAYER_NAME);
 });
 
 test('missing riffle parameter does not block studio synthesis', () => {
