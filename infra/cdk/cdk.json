@@ -1,6 +1,7 @@
 {
   "app": "npx tsx bin/galaxyclass.ts",
   "context": {
-    "@aws-cdk/core:checkSecretUsage": true
+    "@aws-cdk/core:checkSecretUsage": true,
+    "ssm:account=111111111111:parameterName=/galaxyclass/riffle/play-origin-bucket:region=us-east-1": "galaxyclass-riffle-play-origin-test"
   }
 }
